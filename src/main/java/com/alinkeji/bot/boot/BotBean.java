@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -62,6 +63,7 @@ public class BotBean {
 
   @Bean
   @ConditionalOnMissingBean
+  @ConfigurationProperties(prefix = "bot.wx-url")
   public List<WxWebSocketClient> initWechatBotClient() {
     return properties.getWxUrl().entrySet().stream().map(m -> {
       String botName = m.getKey();

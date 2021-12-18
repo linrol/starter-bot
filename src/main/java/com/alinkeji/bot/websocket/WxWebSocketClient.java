@@ -21,7 +21,6 @@ public class WxWebSocketClient extends WebSocketClient {
 
   public WxWebSocketClient(String botName, String url, BotFactory botFactory) throws URISyntaxException {
     super(new URI(url));
-    this.setConnectionLostTimeout(5);
     this.botName = botName;
     this.botFactory = botFactory;
   }
