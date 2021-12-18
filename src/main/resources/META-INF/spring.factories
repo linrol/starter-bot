@@ -1,5 +1,5 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.alinkeji.robot.boot.AutoConfiguration
+com.alinkeji.bot.boot.AutoConfiguration
 
 org.springframework.context.ApplicationListener=\
-com.alinkeji.robot.boot.BannerApplicationListener
+com.alinkeji.bot.boot.BannerApplicationListener

@@ -47,7 +47,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
   }
 
   /**
-   * ws建立连接，创建Bot对象，并放入BotGlobal.robots，是static Map，方便在jar外面获取
+   * ws建立连接，创建Bot对象，并放入BotGlobal.bots，是static Map，方便在jar外面获取
    *
    * @param session websocket session
    */
@@ -60,7 +60,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     Bot bot = botFactory.createBot(xSelfId, session);
 
     // 存入Map，方便在未收到消息时调用API发送消息(定时、Controller或其他方式触发)
-    BotGlobal.robots.put(xSelfId, bot);
+    BotGlobal.bots.put(xSelfId, bot);
   }
 
   /**
@@ -74,7 +74,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     long xSelfId = Long.parseLong(session.getHandshakeHeaders().get("x-self-id").get(0));
     log.info("{} disconnected", xSelfId);
 
-    BotGlobal.robots.remove(xSelfId);
+    BotGlobal.bots.remove(xSelfId);
   }
 
   /**
@@ -86,14 +86,14 @@ public class WebSocketHandler extends TextWebSocketHandler {
   @Override
   protected void handleTextMessage(WebSocketSession session, TextMessage message) {
     long xSelfId = Long.parseLong(session.getHandshakeHeaders().get("x-self-id").get(0));
-    Bot robot = BotGlobal.robots.get(xSelfId);
+    Bot bot = BotGlobal.bots.get(xSelfId);
 
     // 防止网络问题，快速重连可能 （连接1，断开1，连接2） 变成 （连接1，连接2，断开1）
-    if (robot == null) {
-      robot = botFactory.createBot(xSelfId, session);
-      BotGlobal.robots.put(xSelfId, robot);
+    if (bot == null) {
+      bot = botFactory.createBot(xSelfId, session);
+      BotGlobal.bots.put(xSelfId, bot);
     }
-    robot.setBotSession(session);
+    bot.setBotSession(session);
 
     JSONObject recvJson = JSON.parseObject(message.getPayload());
     if (recvJson.containsKey("echo")) {
@@ -101,8 +101,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
       apiHandler.onReceiveApiMessage(recvJson);
     } else {
       // 不带有echo是事件上报
-      Bot finalRobot = robot;
-      executor.execute(() -> eventHandler.handle(finalRobot, recvJson));
+      Bot finalBot = bot;
+      executor.execute(() -> eventHandler.handle(finalBot, recvJson));
     }
   }
 }
