@@ -13,12 +13,6 @@ import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * @Description
- * @ClassName WxWebSocketClient
- * @Author linrol
- * @date 2021年12月18日 13:32 Copyright (c) 2020, linrol@77hub.com All Rights Reserved.
- */
 @Slf4j
 public class WxWebSocketClient extends WebSocketClient {
 
