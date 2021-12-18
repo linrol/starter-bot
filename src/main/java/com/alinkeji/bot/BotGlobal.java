@@ -6,5 +6,5 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class BotGlobal {
 
-  public static Map<Long, Bot> bots = new ConcurrentHashMap<>();
+  public static Map<String, Bot> bots = new ConcurrentHashMap<>();
 }

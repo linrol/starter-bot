@@ -1,6 +1,7 @@
 package com.alinkeji.bot.bot;
 
 import com.alinkeji.bot.boot.Properties;
+import org.java_websocket.client.WebSocketClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
@@ -26,5 +27,15 @@ public class BotFactory {
    */
   public Bot createBot(Long selfId, WebSocketSession botSession) {
     return new Bot(selfId, botSession, apiHandler, properties.getPluginList());
+  }
+
+  /**
+   * 创建一个Bot对象 把spring容器中的apiHandler放入对象
+   *
+   * @param botClient ws的botClient
+   * @return Bot对象
+   */
+  public Bot createBot(WebSocketClient botClient) {
+    return new Bot(botClient);
   }
 }

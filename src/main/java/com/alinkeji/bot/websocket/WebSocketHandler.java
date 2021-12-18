@@ -60,7 +60,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     Bot bot = botFactory.createBot(xSelfId, session);
 
     // 存入Map，方便在未收到消息时调用API发送消息(定时、Controller或其他方式触发)
-    BotGlobal.bots.put(xSelfId, bot);
+    BotGlobal.bots.put(String.valueOf(xSelfId), bot);
   }
 
   /**
@@ -74,7 +74,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     long xSelfId = Long.parseLong(session.getHandshakeHeaders().get("x-self-id").get(0));
     log.info("{} disconnected", xSelfId);
 
-    BotGlobal.bots.remove(xSelfId);
+    BotGlobal.bots.remove(String.valueOf(xSelfId));
   }
 
   /**
@@ -86,12 +86,12 @@ public class WebSocketHandler extends TextWebSocketHandler {
   @Override
   protected void handleTextMessage(WebSocketSession session, TextMessage message) {
     long xSelfId = Long.parseLong(session.getHandshakeHeaders().get("x-self-id").get(0));
-    Bot bot = BotGlobal.bots.get(xSelfId);
+    Bot bot = BotGlobal.bots.get(String.valueOf(xSelfId));
 
     // 防止网络问题，快速重连可能 （连接1，断开1，连接2） 变成 （连接1，连接2，断开1）
     if (bot == null) {
       bot = botFactory.createBot(xSelfId, session);
-      BotGlobal.bots.put(xSelfId, bot);
+      BotGlobal.bots.put(String.valueOf(xSelfId), bot);
     }
     bot.setBotSession(session);
 

@@ -25,6 +25,8 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.java_websocket.client.WebSocketClient;
+import org.springframework.util.StringUtils;
 import org.springframework.web.socket.WebSocketSession;
 
 /**
@@ -42,8 +44,11 @@ public class Bot {
   @Setter
   private WebSocketSession botSession;
 
-  private ApiHandler apiHandler;
+  @Getter
+  @Setter
+  private WebSocketClient botClient;
 
+  private ApiHandler apiHandler;
 
   @Getter
   @Setter
@@ -55,6 +60,10 @@ public class Bot {
     this.botSession = botSession;
     this.apiHandler = apiHandler;
     this.pluginList = pluginList;
+  }
+
+  public Bot(WebSocketClient webSocketClient) {
+    this.botClient = webSocketClient;
   }
 
   /**
@@ -113,6 +122,39 @@ public class Bot {
       .toJavaObject(new TypeReference<ApiData<MessageData>>() {
       });
     return result;
+  }
+
+  /**
+   * 微信发送
+   *
+   * @param wechatMsg
+   * @return
+   */
+  public boolean sendWx(WechatMsg wechatMsg) {
+    if (!botClient.isOpen()) {
+      return false;
+    }
+    String NULL_MSG = "null";
+    if (!StringUtils.hasText(wechatMsg.getExt())) {
+      wechatMsg.setExt(NULL_MSG);
+    }
+    if (!StringUtils.hasText(wechatMsg.getNickname())) {
+      wechatMsg.setNickname(NULL_MSG);
+    }
+    if (!StringUtils.hasText(wechatMsg.getRoomid())) {
+      wechatMsg.setRoomid(NULL_MSG);
+    }
+    if (!StringUtils.hasText(wechatMsg.getContent())) {
+      wechatMsg.setContent(NULL_MSG);
+    }
+    if (!StringUtils.hasText(wechatMsg.getWxid())) {
+      wechatMsg.setWxid(NULL_MSG);
+    }
+    // 消息Id
+    wechatMsg.setId(String.valueOf(System.currentTimeMillis()));
+    // 发送消息
+    botClient.send(JSONObject.toJSONString(wechatMsg));
+    return true;
   }
 
   /**

@@ -15,6 +15,9 @@ public class Properties {
   private String url = "/ws/*/";
   @Getter
   @Setter
+  private String wxUrl = "/ws/*/";
+  @Getter
+  @Setter
   private Integer maxTextMessageBufferSize = 512000;
   @Getter
   @Setter
