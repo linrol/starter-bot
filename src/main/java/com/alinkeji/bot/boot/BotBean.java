@@ -62,7 +62,7 @@ public class BotBean {
 
   @Bean
   @ConditionalOnMissingBean
-  public List<WxWebSocketClient> initWechatBotClient() throws URISyntaxException {
+  public List<WxWebSocketClient> initWechatBotClient() {
     return properties.getWxUrl().entrySet().stream().map(m -> {
       String botName = m.getKey();
       String botWsUrl = m.getValue().toString();
