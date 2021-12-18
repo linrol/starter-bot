@@ -10,10 +10,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.alinkeji</groupId>
-	<artifactId>starer-robot</artifactId>
+	<artifactId>starter-robot</artifactId>
 	<version>1.0.1</version>
-	<name>starer-robot</name>
-	<description>starer-robot for wechat qq and more</description>
+	<name>starter-robot</name>
+	<description>starter-robot for wechat qq and more</description>
 	<url>http://alinkeji.com</url>
 
 	<developers>
@@ -34,9 +34,9 @@
 
 	<scm>
 		<tag>master</tag>
-		<connection>scm:git:git@github.com:linrol/starer-robot.git</connection>
+		<connection>scm:git:git@github.com:linrol/starter-robot.git</connection>
 		<developerConnection>https://linrol.github.io/</developerConnection>
-		<url>https://github.com/linrol/starer-robot</url>
+		<url>https://github.com/linrol/starter-robot</url>
 	</scm>
 
 	<properties>
