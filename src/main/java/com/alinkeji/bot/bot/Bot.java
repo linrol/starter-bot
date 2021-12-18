@@ -131,9 +131,6 @@ public class Bot {
    * @return
    */
   public boolean sendWx(WechatMsg wechatMsg) {
-    if (!botClient.isOpen()) {
-      return false;
-    }
     String NULL_MSG = "null";
     if (!StringUtils.hasText(wechatMsg.getExt())) {
       wechatMsg.setExt(NULL_MSG);

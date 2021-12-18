@@ -4,6 +4,11 @@ import com.alinkeji.bot.bot.ApiHandler;
 import com.alinkeji.bot.bot.BotFactory;
 import com.alinkeji.bot.bot.EventHandler;
 import com.alinkeji.bot.websocket.WebSocketHandler;
+import com.alinkeji.bot.websocket.WxWebSocketClient;
+import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
@@ -53,5 +58,24 @@ public class BotBean {
     container.setMaxBinaryMessageBufferSize(properties.getMaxBinaryMessageBufferSize());
     container.setMaxSessionIdleTimeout(properties.getMaxSessionIdleTimeout());
     return container;
+  }
+
+  @Bean
+  @ConditionalOnMissingBean
+  public List<WxWebSocketClient> initWechatBotClient() throws URISyntaxException {
+    return properties.getWxUrl().entrySet().stream().map(m -> {
+      String botName = m.getKey();
+      String botWsUrl = m.getValue().toString();
+      WxWebSocketClient botClient;
+      try {
+        botClient = new WxWebSocketClient(botName, botWsUrl, botFactory);
+        // 建立连接
+        botClient.connect();
+        return botClient;
+      } catch (URISyntaxException e) {
+        e.printStackTrace();
+        return null;
+      }
+    }).filter(Objects::nonNull).collect(Collectors.toList());
   }
 }

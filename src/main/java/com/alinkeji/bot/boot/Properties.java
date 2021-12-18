@@ -2,7 +2,9 @@ package com.alinkeji.bot.boot;
 
 import com.alinkeji.bot.bot.BotPlugin;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -15,7 +17,7 @@ public class Properties {
   private String url = "/ws/*/";
   @Getter
   @Setter
-  private String wxUrl = "/ws/*/";
+  private Map<String, Object> wxUrl = Collections.emptyMap();
   @Getter
   @Setter
   private Integer maxTextMessageBufferSize = 512000;
