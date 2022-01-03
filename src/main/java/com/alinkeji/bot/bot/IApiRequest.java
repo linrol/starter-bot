@@ -7,7 +7,9 @@ import com.alibaba.fastjson.JSONObject;
  */
 public interface IApiRequest {
 
-  String getUrl();
+  String getApiUrl();
+
+  String getApiMethod();
 
   JSONObject getParams();
 }

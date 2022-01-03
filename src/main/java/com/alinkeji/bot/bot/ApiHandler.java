@@ -7,6 +7,8 @@ import com.alinkeji.bot.websocket.BotWebSocketSession;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Stack;
+import java.util.stream.Collectors;
 
 /**
  * API处理类
@@ -66,8 +68,9 @@ public class ApiHandler {
     JSONObject params) {
     String method = properties.getApiMethod().getOrDefault(action.getUrl(), action.getMethod());
     if (method.equals("http")) {
-      String apiUrl = String.format(properties.getHttpUrl(), botSession.getBotId(), action.getUrl());
-      return sendApiMessage(apiUrl, params);
+      Stack<String> urlStack = properties.getHttpUrl().stream()
+        .collect(Collectors.toCollection(Stack::new));
+      return callHttpApi(urlStack, botSession.getBotId(), action.getUrl(), params);
     }
     JSONObject apiJSON = constructApiJSON(action, params);
     String echo = apiJSON.getString("echo");
@@ -95,7 +98,7 @@ public class ApiHandler {
    */
   private JSONObject constructApiJSON(IApiRequest apiRequest) {
     JSONObject apiJSON = new JSONObject();
-    apiJSON.put("action", apiRequest.getUrl());
+    apiJSON.put("action", apiRequest.getApiUrl());
     if (apiRequest.getParams() != null) {
       apiJSON.put("params", apiRequest.getParams());
     }
@@ -115,6 +118,15 @@ public class ApiHandler {
   @SuppressWarnings("unused")
   public JSONObject sendApiMessage(BotWebSocketSession botSession, IApiRequest apiRequest)
     throws IOException, InterruptedException {
+    String method = properties.getApiMethod()
+      .getOrDefault(apiRequest.getApiUrl(), apiRequest.getApiMethod());
+    if (method.equals("http")) {
+      Stack<String> urlStack = properties.getHttpUrl().stream()
+        .collect(Collectors.toCollection(Stack::new));
+      return callHttpApi(urlStack, botSession.getBotId(), apiRequest.getApiUrl(),
+        apiRequest.getParams());
+    }
+
     JSONObject apiJSON = constructApiJSON(apiRequest);
     String echo = apiJSON.getString("echo");
     ApiSender apiSender = new ApiSender(botSession.getWebSocketSession(),
@@ -125,8 +137,25 @@ public class ApiHandler {
     return retJson;
   }
 
-  private JSONObject sendApiMessage(String url, JSONObject params) {
-    return OkHttpClientUtil.<JSONObject>build(JSONObject.class)
-      .post(url, params.toJSONString());
+  private JSONObject callHttpApi(Stack<String> urlStack, String botId, String action,
+    JSONObject params) {
+    String apiUrl = String.format(urlStack.pop(), botId, action);
+    OkHttpClientUtil<JSONObject> callClient = OkHttpClientUtil.build(JSONObject.class);
+    JSONObject apiResult;
+    try {
+      apiResult = callClient.post(apiUrl, params.toJSONString());
+    } catch (Exception e) {
+      e.printStackTrace();
+      apiResult = new JSONObject();
+      apiResult.put("status", "failed");
+      apiResult.put("retcode", -1);
+    }
+    if (apiResult.containsKey("status") && apiResult.getString("status").equals("ok")) {
+      return apiResult;
+    }
+    if (urlStack.isEmpty()) {
+      return apiResult;
+    }
+    return callHttpApi(urlStack, botId, action, params);
   }
 }
