@@ -2,7 +2,7 @@ package com.alinkeji.bot.boot;
 
 public class Logo {
 
-  public static String logo = "         /¯¯¯¯\\     \n"
+  public static String logo = "    /¯¯¯¯\\     \n"
     + "    o-|[][]|-o   \n"
     + "      |_--_|     \n"
     + "   /¯¯¯¯¯¯¯¯¯¯\\  \n"
