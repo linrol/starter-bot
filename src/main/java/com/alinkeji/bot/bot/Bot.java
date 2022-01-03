@@ -127,8 +127,8 @@ public class Bot {
   /**
    * 微信发送
    *
-   * @param wechatMsg
-   * @return
+   * @param wechatMsg 微信参数
+   * @return true or false
    */
   public boolean sendWx(WechatMsg wechatMsg) {
     String NULL_MSG = "null";

@@ -102,7 +102,7 @@ public class BotCode {
    * @param magic   是否为变声，若该参数为true则显示变声标记。该参数可被忽略。
    * @param cache   是否缓存
    * @param timeout 下载操作超时(单位秒)
-   * @return
+   * @return [CQ:record,file=]
    */
   public static String record(String file, boolean magic, boolean cache, int timeout) {
     return "[CQ:record,file=" + escape(file) + ",magic=" + magic + ",cache=" + cache + ",timeout="

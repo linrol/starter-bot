@@ -88,14 +88,15 @@ public class WebSocketHandler extends TextWebSocketHandler {
   @Override
   protected void handleTextMessage(WebSocketSession session, TextMessage message) {
     long xSelfId = Long.parseLong(session.getHandshakeHeaders().get("x-self-id").get(0));
-    Bot bot = BotGlobal.bots.get(String.valueOf(xSelfId));
+    String botId = String.valueOf(xSelfId);
+    Bot bot = BotGlobal.bots.get(botId);
 
     // 防止网络问题，快速重连可能 （连接1，断开1，连接2） 变成 （连接1，连接2，断开1）
     if (bot == null) {
       bot = botFactory.createBot(xSelfId, session);
-      BotGlobal.bots.put(String.valueOf(xSelfId), bot);
+      BotGlobal.bots.put(botId, bot);
     }
-    bot.setBotSession(session);
+    bot.setBotSession(BotWebSocketSession.of(botId, session));
 
     JSONObject recvJson = JSON.parseObject(message.getPayload());
     if (recvJson.containsKey("echo")) {

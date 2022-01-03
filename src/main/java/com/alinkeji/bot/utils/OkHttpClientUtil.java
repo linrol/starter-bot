@@ -2,7 +2,7 @@ package com.alinkeji.bot.utils;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.google.gson.reflect.TypeToken;
+import com.alibaba.fastjson.TypeReference;
 import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -15,17 +15,11 @@ import okhttp3.Response;
 import okhttp3.internal.Util;
 import org.springframework.util.StringUtils;
 
-/**
- * @Description
- * @ClassName OkHttpClientUtil
- * @Author linrol
- * @date 2021年09月19日 22:26 Copyright (c) 2020, linrol@77hub.com All Rights Reserved.
- */
 public class OkHttpClientUtil<R> extends OkHttpClient {
 
   R r;
 
-  Type type = new TypeToken<Map<String, Object>>() {
+  Type type = new TypeReference<Map<String, Object>>() {
   }.getType();
 
   private static final MediaType JSON_MEDIA_TYPE = MediaType
