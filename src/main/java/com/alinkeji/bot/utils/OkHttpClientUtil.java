@@ -6,6 +6,7 @@ import com.alibaba.fastjson.TypeReference;
 import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.FormBody;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -15,11 +16,12 @@ import okhttp3.Response;
 import okhttp3.internal.Util;
 import org.springframework.util.StringUtils;
 
+@Slf4j
 public class OkHttpClientUtil<R> extends OkHttpClient {
 
   R r;
 
-  Type type = new TypeReference<Map<String, Object>>() {
+  Type type = new TypeReference<MapEx<String, Object>>() {
   }.getType();
 
   private static final MediaType JSON_MEDIA_TYPE = MediaType
@@ -49,7 +51,10 @@ public class OkHttpClientUtil<R> extends OkHttpClient {
       .url(url)
       .get()
       .build();
-    return request(client, request);
+
+    R r = request(client, request);
+    log.debug("OkHttpClientUtil#get url[{}] result[{}]", url, r.toString());
+    return r;
   }
 
   public R get(String url, JSONObject params) {
@@ -57,15 +62,7 @@ public class OkHttpClientUtil<R> extends OkHttpClient {
       url += "?" + params.entrySet().stream().map(m -> m.getKey() + "=" + m.getValue())
         .collect(Collectors.joining("&"));
     }
-    OkHttpClient client = new OkHttpClient().newBuilder().hostnameVerifier((hostname, session) -> {
-      //强行返回true 即验证成功
-      return true;
-    }).build();
-    Request request = new Request.Builder()
-      .url(url)
-      .get()
-      .build();
-    return request(client, request);
+    return get(url);
   }
 
   public R post(String url, String json) {
@@ -81,7 +78,10 @@ public class OkHttpClientUtil<R> extends OkHttpClient {
       .url(url)
       .post(requestBody)
       .build();
-    return request(client, request);
+
+    R r = request(client, request);
+    log.debug("OkHttpClientUtil#post url[{}] body[{}] result[{}]", url, json, r.toString());
+    return r;
   }
 
   public R postForm(String url, Map<String, String> formData) {
@@ -96,7 +96,10 @@ public class OkHttpClientUtil<R> extends OkHttpClient {
       .url(url)
       .post(formBody)
       .build();
-    return request(client, request);
+
+    R r = request(client, request);
+    log.debug("OkHttpClientUtil#postForm url[{}] body[{}] result[{}]", url, formData, r.toString());
+    return r;
   }
 
   public R request(OkHttpClient client, Request request) {
@@ -109,8 +112,8 @@ public class OkHttpClientUtil<R> extends OkHttpClient {
       }
     } catch (Exception e) {
       e.printStackTrace();
-      throw new RuntimeException("OkHttp.request exception:" + e.getMessage());
+      throw new RuntimeException("OkHttpClientUtil#request exception:" + e.getMessage());
     }
-    throw new RuntimeException("OkHttp.request status code:" + response.code());
+    throw new RuntimeException("OkHttpClientUtil#request status code:" + response.code());
   }
 }
