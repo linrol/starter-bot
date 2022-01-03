@@ -5,14 +5,17 @@ import com.alinkeji.bot.boot.Properties;
 import com.alinkeji.bot.utils.OkHttpClientUtil;
 import com.alinkeji.bot.websocket.BotWebSocketSession;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * API处理类
  */
+@Slf4j
 public class ApiHandler {
 
   private int apiEcho = 0;//用于标记是哪次发送api，接受时作为key放入apiResponseMap
@@ -151,11 +154,23 @@ public class ApiHandler {
       apiResult.put("retcode", -1);
     }
     if (apiResult.containsKey("status") && apiResult.getString("status").equals("ok")) {
+      log.debug("botId status ok [{}]", botId);
       return apiResult;
     }
     if (urlStack.isEmpty()) {
+      log.debug("botId urlStack empty [{}]", botId);
       return apiResult;
     }
     return callHttpApi(urlStack, botId, action, params);
+  }
+
+  public static void main(String[] args) {
+    Stack<String> urlStack = Arrays.asList("http://oicq-%s:5700/%s", "http://go-cqhttp-%s:5700/%s").stream()
+      .collect(Collectors.toCollection(Stack::new));
+    String a = urlStack.pop();
+    System.out.println("1" + a);
+    System.out.println("2" + urlStack.isEmpty());
+    System.out.println("3" + urlStack.pop());
+    System.out.println("4" + urlStack.isEmpty());
   }
 }
