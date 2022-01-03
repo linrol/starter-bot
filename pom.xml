@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>com.alinkeji</groupId>
 	<artifactId>starter-bot</artifactId>
-	<version>1.1.5</version>
+	<version>1.1.6</version>
 	<name>starter-bot</name>
 	<description>starter-bot for wechat qq and more</description>
 	<url>http://alinkeji.com</url>
