@@ -14,7 +14,10 @@ public class Properties {
 
   @Getter
   @Setter
-  private String url = "/ws/*/";
+  private String httpUrl = "http://go-cqhttp-%s:5700/%s";
+  @Getter
+  @Setter
+  private String wsReverseUrl = "/ws/*/";
   @Getter
   @Setter
   private Map<String, Object> wxUrl = Collections.emptyMap();
@@ -30,6 +33,9 @@ public class Properties {
   @Getter
   @Setter
   private Long apiTimeout = 120000L;
+  @Getter
+  @Setter
+  private Map<String, String> apiMethod = Collections.emptyMap();
   @Getter
   @Setter
   List<Class<? extends BotPlugin>> pluginList = new ArrayList<>();

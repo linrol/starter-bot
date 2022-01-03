@@ -20,6 +20,7 @@ import com.alinkeji.bot.retdata.LoginInfoData;
 import com.alinkeji.bot.retdata.MessageData;
 import com.alinkeji.bot.retdata.StrangerInfoData;
 import com.alinkeji.bot.retdata.VersionInfoData;
+import com.alinkeji.bot.websocket.BotWebSocketSession;
 import java.io.IOException;
 import java.util.List;
 import lombok.Getter;
@@ -27,7 +28,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
 import org.springframework.util.StringUtils;
-import org.springframework.web.socket.WebSocketSession;
 
 /**
  * Bot类 每个机器人对应一个对象 保存 机器人自己的QQ 和 ws的session API文档 https://github.com/lz1998/Spring-CQ/blob/demo/API.md
@@ -38,11 +38,11 @@ public class Bot {
 
   @Getter
   @Setter
-  private long selfId;
+  private long botId;
 
   @Getter
   @Setter
-  private WebSocketSession botSession;
+  private BotWebSocketSession botSession;
 
   @Getter
   @Setter
@@ -54,9 +54,9 @@ public class Bot {
   @Setter
   private List<Class<? extends BotPlugin>> pluginList;
 
-  public Bot(long selfId, WebSocketSession botSession, ApiHandler apiHandler,
+  public Bot(long botId, BotWebSocketSession botSession, ApiHandler apiHandler,
     List<Class<? extends BotPlugin>> pluginList) {
-    this.selfId = selfId;
+    this.botId = botId;
     this.botSession = botSession;
     this.apiHandler = apiHandler;
     this.pluginList = pluginList;

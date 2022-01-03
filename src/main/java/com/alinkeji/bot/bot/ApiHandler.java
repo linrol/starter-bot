@@ -2,10 +2,11 @@ package com.alinkeji.bot.bot;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alinkeji.bot.boot.Properties;
+import com.alinkeji.bot.utils.OkHttpClientUtil;
+import com.alinkeji.bot.websocket.BotWebSocketSession;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.web.socket.WebSocketSession;
 
 /**
  * API处理类
@@ -61,10 +62,17 @@ public class ApiHandler {
    * @param params     参数
    * @return 结果
    */
-  public JSONObject sendApiMessage(WebSocketSession botSession, ApiEnum action, JSONObject params) {
+  public JSONObject sendApiMessage(BotWebSocketSession botSession, ApiEnum action,
+    JSONObject params) {
+    String method = properties.getApiMethod().getOrDefault(action.getUrl(), action.getMethod());
+    if (method.equals("http")) {
+      String apiUrl = String.format(properties.getHttpUrl(), botSession.getBotId(), action.getUrl());
+      return sendApiMessage(apiUrl, params);
+    }
     JSONObject apiJSON = constructApiJSON(action, params);
     String echo = apiJSON.getString("echo");
-    ApiSender apiSender = new ApiSender(botSession, properties.getApiTimeout());
+    ApiSender apiSender = new ApiSender(botSession.getWebSocketSession(),
+      properties.getApiTimeout());
     apiCallbackMap.put(echo, apiSender);
     JSONObject retJson;
     try {
@@ -105,14 +113,20 @@ public class ApiHandler {
    * @throws InterruptedException 线程异常
    */
   @SuppressWarnings("unused")
-  public JSONObject sendApiMessage(WebSocketSession botSession, IApiRequest apiRequest)
+  public JSONObject sendApiMessage(BotWebSocketSession botSession, IApiRequest apiRequest)
     throws IOException, InterruptedException {
     JSONObject apiJSON = constructApiJSON(apiRequest);
     String echo = apiJSON.getString("echo");
-    ApiSender apiSender = new ApiSender(botSession, properties.getApiTimeout());
+    ApiSender apiSender = new ApiSender(botSession.getWebSocketSession(),
+      properties.getApiTimeout());
     apiCallbackMap.put(echo, apiSender);
     JSONObject retJson;
     retJson = apiSender.sendApiJson(apiJSON);
     return retJson;
+  }
+
+  private JSONObject sendApiMessage(String url, JSONObject params) {
+    return OkHttpClientUtil.<JSONObject>build(JSONObject.class)
+      .post(url, params.toJSONString());
   }
 }

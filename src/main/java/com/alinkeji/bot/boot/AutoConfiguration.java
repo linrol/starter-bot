@@ -27,7 +27,7 @@ public class AutoConfiguration implements WebSocketConfigurer {
 
   @Override
   public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-    registry.addHandler(webSocketHandler, properties.getUrl()).setAllowedOrigins("*");
+    registry.addHandler(webSocketHandler, properties.getWsReverseUrl()).setAllowedOrigins("*");
   }
 
 
