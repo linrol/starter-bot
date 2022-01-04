@@ -125,12 +125,12 @@ public class Bot {
   }
 
   /**
-   * 微信发送
+   * call hook api use by websocket client
    *
    * @param wechatMsg 微信参数
    * @return true or false
    */
-  public boolean sendWx(WechatMsg wechatMsg) {
+  public boolean callWxApi(WechatMsg wechatMsg) {
     String NULL_MSG = "null";
     if (!StringUtils.hasText(wechatMsg.getExt())) {
       wechatMsg.setExt(NULL_MSG);

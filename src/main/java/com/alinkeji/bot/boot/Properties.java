@@ -21,7 +21,7 @@ public class Properties {
   private String wsReverseUrl = "/ws/*/";
   @Getter
   @Setter
-  private Map<String, Object> wxUrl = Collections.emptyMap();
+  private Map<String, Object> wsUrl = Collections.emptyMap();
   @Getter
   @Setter
   private Integer maxTextMessageBufferSize = 512000;

@@ -63,9 +63,9 @@ public class BotBean {
 
   @Bean
   @ConditionalOnMissingBean
-  @ConfigurationProperties(prefix = "bot.wx-url")
+  @ConfigurationProperties(prefix = "bot.ws-url")
   public List<WxWebSocketClient> initWechatBotClient() {
-    return properties.getWxUrl().entrySet().stream().map(m -> {
+    return properties.getWsUrl().entrySet().stream().map(m -> {
       String botName = m.getKey();
       String botWsUrl = m.getValue().toString();
       WxWebSocketClient botClient;
