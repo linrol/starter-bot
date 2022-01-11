@@ -1,11 +1,13 @@
 package com.alinkeji.bot.boot;
 
-import com.alinkeji.bot.bot.ApiHandler;
+import com.alinkeji.bot.BotGlobal;
+import com.alinkeji.bot.bot.Bot;
 import com.alinkeji.bot.bot.BotFactory;
 import com.alinkeji.bot.bot.EventHandler;
 import com.alinkeji.bot.websocket.WebSocketHandler;
 import com.alinkeji.bot.websocket.WxWebSocketClient;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -34,14 +36,8 @@ public class BotBean {
 
   @Bean
   @ConditionalOnMissingBean
-  public WebSocketHandler createWebSocketHandler(ApiHandler apiHandler, EventHandler eventHandler) {
-    return new WebSocketHandler(eventProperties, botFactory, apiHandler, eventHandler);
-  }
-
-  @Bean
-  @ConditionalOnMissingBean
-  public ApiHandler createApiHandler() {
-    return new ApiHandler(properties);
+  public WebSocketHandler createWebSocketHandler(EventHandler eventHandler) {
+    return new WebSocketHandler(eventProperties, botFactory, eventHandler);
   }
 
   @Bean
@@ -62,22 +58,29 @@ public class BotBean {
   }
 
   @Bean
-  @ConditionalOnMissingBean
-  @ConfigurationProperties(prefix = "bot.ws-url")
-  public List<WxWebSocketClient> initWechatBotClient() {
-    return properties.getWsUrl().entrySet().stream().map(m -> {
+  @ConfigurationProperties(prefix = "bot.ws-server")
+  public List<Bot> createWsBot() {
+    return properties.getWsServer().entrySet().stream().map(m -> {
       String botName = m.getKey();
-      String botWsUrl = m.getValue().toString();
-      WxWebSocketClient botClient;
+      String botWsUrl = m.getValue();
       try {
-        botClient = new WxWebSocketClient(botName, botWsUrl, botFactory);
-        // 建立连接
-        botClient.connect();
-        return botClient;
+        new WxWebSocketClient(botName, botWsUrl, botFactory).connect();
+        return BotGlobal.bots.get(botName);
       } catch (URISyntaxException e) {
         e.printStackTrace();
-        return null;
       }
+      return null;
     }).filter(Objects::nonNull).collect(Collectors.toList());
   }
+
+  @Bean
+  @ConfigurationProperties(prefix = "bot.http-server")
+  public List<Bot> createHttpBot(BotFactory botFactory) {
+    return properties.getHttpServer().entrySet().stream().map(m -> {
+      String botId = m.getKey();
+      String httpServer = m.getValue();
+      return botFactory.injectHttp(botId, Arrays.asList(httpServer.split(",")));
+    }).collect(Collectors.toList());
+  }
+
 }

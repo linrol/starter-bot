@@ -2,7 +2,6 @@ package com.alinkeji.bot.boot;
 
 import com.alinkeji.bot.bot.BotPlugin;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -15,13 +14,13 @@ public class Properties {
 
   @Getter
   @Setter
-  private List<String> httpUrl = Arrays.asList("http://oicq-%s:5700/%s", "http://go-cqhttp-%s:5700/%s");
+  private Map<String, String> httpServer = Collections.emptyMap(); // = Arrays.asList("http://oicq-%s:5700/%s", "http://go-cqhttp-%s:5700/%s")
+  @Getter
+  @Setter
+  private Map<String, String> wsServer = Collections.emptyMap();
   @Getter
   @Setter
   private String wsReverseUrl = "/ws/*/";
-  @Getter
-  @Setter
-  private Map<String, Object> wsUrl = Collections.emptyMap();
   @Getter
   @Setter
   private Integer maxTextMessageBufferSize = 512000;

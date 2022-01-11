@@ -20,13 +20,14 @@ import com.alinkeji.bot.retdata.LoginInfoData;
 import com.alinkeji.bot.retdata.MessageData;
 import com.alinkeji.bot.retdata.StrangerInfoData;
 import com.alinkeji.bot.retdata.VersionInfoData;
-import com.alinkeji.bot.websocket.BotWebSocketSession;
-import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.java_websocket.client.WebSocketClient;
 import org.springframework.util.StringUtils;
 
 /**
@@ -38,90 +39,49 @@ public class Bot {
 
   @Getter
   @Setter
-  private long botId;
-
-  @Getter
-  @Setter
-  private BotWebSocketSession botSession;
-
-  @Getter
-  @Setter
-  private WebSocketClient botClient;
-
-  private ApiHandler apiHandler;
+  private String botId;
 
   @Getter
   @Setter
   private List<Class<? extends BotPlugin>> pluginList;
 
-  public Bot(long botId, BotWebSocketSession botSession, ApiHandler apiHandler,
-    List<Class<? extends BotPlugin>> pluginList) {
+  @Getter
+  @Setter
+  private Map<ApiMethod, ApiHandler> apiHandlerMap = new HashMap<>();
+
+  public Bot(String botId, List<Class<? extends BotPlugin>> pluginList) {
     this.botId = botId;
-    this.botSession = botSession;
-    this.apiHandler = apiHandler;
     this.pluginList = pluginList;
   }
 
-  public Bot(WebSocketClient webSocketClient) {
-    this.botClient = webSocketClient;
+  public Bot addApiHandler(ApiMethod apiMethod, ApiHandler... apiHandlers) {
+    Arrays.asList(apiHandlers).forEach(apiHandler -> {
+      apiHandlerMap.put(apiMethod, apiHandler);
+    });
+    return this;
   }
 
-  /**
-   * 调用自定义的API
-   *
-   * @param apiRequest 包含String url, JsonObject params
-   * @return 结果
-   * @throws IOException          发送异常
-   * @throws InterruptedException 线程异常
-   */
-  @SuppressWarnings("unused")
-  public ApiData callCustomApi(IApiRequest apiRequest) throws IOException, InterruptedException {
-    return apiHandler.sendApiMessage(botSession, apiRequest).toJavaObject(ApiData.class);
+  public Bot removeApiHandler(ApiMethod apiMethod) {
+    if (apiHandlerMap.containsKey(apiMethod)) {
+      this.apiHandlerMap.remove(apiMethod);
+    }
+    return this;
   }
 
-  /**
-   * 发送私聊消息
-   *
-   * @param user_id     对方 QQ 号
-   * @param message     要发送的内容
-   * @param auto_escape 消息内容是否作为纯文本发送（即不解析 CQ 码），只在 message 字段是字符串时有效
-   * @return 结果
-   */
-  public ApiData<MessageData> sendPrivateMsg(long user_id, String message, boolean auto_escape) {
-    ApiEnum action = ApiEnum.SEND_PRIVATE_MSG;
-
-    JSONObject params = new JSONObject();
-    params.put("user_id", user_id);
-    params.put("message", message);
-    params.put("auto_escape", auto_escape);
-
-    ApiData<MessageData> result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(new TypeReference<ApiData<MessageData>>() {
-      });
-    return result;
+  private ApiHandler getApiHandler(ApiMethod apiMethod) {
+    ApiHandler apiHandler = apiHandlerMap.get(apiMethod);
+    if (Objects.isNull(apiHandler)) {
+      String error = "bot[{}] used apiMethod[{}] not found apiHandler, try find any handler";
+      log.error(error, botId, apiMethod.name());
+      return apiHandlerMap.values().stream().findAny().get();
+    }
+    return apiHandler;
   }
 
-  /**
-   * 发送群消息
-   *
-   * @param group_id    群号
-   * @param message     要发送的内容
-   * @param auto_escape 消息内容是否作为纯文本发送（即不解析 CQ 码），只在 message 字段是字符串时有效
-   * @return 结果
-   */
-  public ApiData<MessageData> sendGroupMsg(long group_id, String message, boolean auto_escape) {
-
-    ApiEnum action = ApiEnum.SEND_GROUP_MSG;
-
-    JSONObject params = new JSONObject();
-    params.put("group_id", group_id);
-    params.put("message", message);
-    params.put("auto_escape", auto_escape);
-
-    ApiData<MessageData> result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(new TypeReference<ApiData<MessageData>>() {
-      });
-    return result;
+  private ApiHandler getApiHandler(ApiEnum apiEnum) {
+    ApiHandler apiHandler = getApiHandler(apiEnum.getApiMethod());
+    log.debug("bot[{}] api url[{}] used handler[{}]", botId, apiEnum.getUrl(), apiHandler.getClass());
+    return apiHandler;
   }
 
   /**
@@ -150,8 +110,63 @@ public class Bot {
     // 消息Id
     wechatMsg.setId(String.valueOf(System.currentTimeMillis()));
     // 发送消息
-    botClient.send(JSONObject.toJSONString(wechatMsg));
+    // botClient.send(JSONObject.toJSONString(wechatMsg));
     return true;
+  }
+
+  /**
+   * 调用自定义的API
+   *
+   * @param apiRequest 包含String url, JsonObject params
+   * @return 结果
+   */
+  public ApiData<Object> callCustomApi(IApiRequest apiRequest) {
+    ApiHandler apiHandler = getApiHandler(apiRequest.getApiMethod());
+    return apiHandler.callApi(apiRequest).toJavaObject(new TypeReference<ApiData<Object>>() {
+    });
+  }
+
+  /**
+   * 发送私聊消息
+   *
+   * @param user_id     对方 QQ 号
+   * @param message     要发送的内容
+   * @param auto_escape 消息内容是否作为纯文本发送（即不解析 CQ 码），只在 message 字段是字符串时有效
+   * @return 结果
+   */
+  public ApiData<MessageData> sendPrivateMsg(long user_id, String message, boolean auto_escape) {
+    ApiEnum action = ApiEnum.SEND_PRIVATE_MSG;
+
+    JSONObject params = new JSONObject();
+    params.put("user_id", user_id);
+    params.put("message", message);
+    params.put("auto_escape", auto_escape);
+
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(new TypeReference<ApiData<MessageData>>() {
+        });
+  }
+
+  /**
+   * 发送群消息
+   *
+   * @param group_id    群号
+   * @param message     要发送的内容
+   * @param auto_escape 消息内容是否作为纯文本发送（即不解析 CQ 码），只在 message 字段是字符串时有效
+   * @return 结果
+   */
+  public ApiData<MessageData> sendGroupMsg(long group_id, String message, boolean auto_escape) {
+
+    ApiEnum action = ApiEnum.SEND_GROUP_MSG;
+
+    JSONObject params = new JSONObject();
+    params.put("group_id", group_id);
+    params.put("message", message);
+    params.put("auto_escape", auto_escape);
+
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(new TypeReference<ApiData<MessageData>>() {
+        });
   }
 
   /**
@@ -170,10 +185,9 @@ public class Bot {
     params.put("message", message);
     params.put("auto_escape", auto_escape);
 
-    ApiData<MessageData> result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(new TypeReference<ApiData<MessageData>>() {
-      });
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(new TypeReference<ApiData<MessageData>>() {
+        });
   }
 
   /**
@@ -188,9 +202,8 @@ public class Bot {
     JSONObject params = new JSONObject();
     params.put("message_id", message_id);
 
-    ApiRawData result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(ApiRawData.class);
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(ApiRawData.class);
   }
 
   /**
@@ -207,9 +220,8 @@ public class Bot {
     params.put("user_id", user_id);
     params.put("times", times);
 
-    ApiRawData result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(ApiRawData.class);
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(ApiRawData.class);
   }
 
   /**
@@ -228,9 +240,8 @@ public class Bot {
     params.put("user_id", user_id);
     params.put("reject_add_request", reject_add_request);
 
-    ApiRawData result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(ApiRawData.class);
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(ApiRawData.class);
   }
 
   /**
@@ -249,9 +260,8 @@ public class Bot {
     params.put("user_id", user_id);
     params.put("duration", duration);
 
-    ApiRawData result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(ApiRawData.class);
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(ApiRawData.class);
   }
 
   /**
@@ -263,7 +273,7 @@ public class Bot {
    * @return 结果
    */
   public ApiRawData setGroupAnonymousBan(long group_id, BotGroupAnonymous botGroupAnonymous,
-    boolean duration) {
+      boolean duration) {
     ApiEnum action = ApiEnum.SET_GROUP_ANONYMOUS_BAN;
 
     JSONObject params = new JSONObject();
@@ -271,9 +281,8 @@ public class Bot {
     params.put("anonymous", botGroupAnonymous);
     params.put("duration", duration);
 
-    ApiRawData result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(ApiRawData.class);
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(ApiRawData.class);
   }
 
   /**
@@ -292,9 +301,8 @@ public class Bot {
     params.put("flag", flag);
     params.put("duration", duration);
 
-    ApiRawData result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(ApiRawData.class);
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(ApiRawData.class);
   }
 
   /**
@@ -310,9 +318,8 @@ public class Bot {
     params.put("group_id", group_id);
     params.put("enable", enable);
 
-    ApiRawData result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(ApiRawData.class);
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(ApiRawData.class);
   }
 
   /**
@@ -331,9 +338,8 @@ public class Bot {
     params.put("user_id", user_id);
     params.put("enable", enable);
 
-    ApiRawData result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(ApiRawData.class);
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(ApiRawData.class);
   }
 
   /**
@@ -350,9 +356,8 @@ public class Bot {
     params.put("group_id", group_id);
     params.put("enable", enable);
 
-    ApiRawData result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(ApiRawData.class);
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(ApiRawData.class);
   }
 
   /**
@@ -371,9 +376,8 @@ public class Bot {
     params.put("user_id", user_id);
     params.put("card", card);
 
-    ApiRawData result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(ApiRawData.class);
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(ApiRawData.class);
   }
 
   /**
@@ -388,9 +392,8 @@ public class Bot {
     params.put("group_id", group_id);
     params.put("is_dismiss", is_dismiss);
 
-    ApiRawData result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(ApiRawData.class);
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(ApiRawData.class);
   }
 
   /**
@@ -403,7 +406,7 @@ public class Bot {
    * @return 结果
    */
   public ApiRawData setGroupSpecialTitle(long group_id, long user_id, String special_title,
-    int duration) {
+      int duration) {
     ApiEnum action = ApiEnum.SET_GROUP_SPECIAL_TITLE;
 
     JSONObject params = new JSONObject();
@@ -412,9 +415,8 @@ public class Bot {
     params.put("special_title", special_title);
     params.put("duration", duration);
 
-    ApiRawData result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(ApiRawData.class);
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(ApiRawData.class);
   }
 
   /**
@@ -429,9 +431,8 @@ public class Bot {
     JSONObject params = new JSONObject();
     params.put("discuss_id", discuss_id);
 
-    ApiRawData result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(ApiRawData.class);
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(ApiRawData.class);
   }
 
   /**
@@ -450,9 +451,8 @@ public class Bot {
     params.put("approve", approve);
     params.put("remark", remark);
 
-    ApiRawData result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(ApiRawData.class);
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(ApiRawData.class);
   }
 
   /**
@@ -465,7 +465,7 @@ public class Bot {
    * @return 结果
    */
   public ApiRawData setGroupAddRequest(String flag, String sub_type, boolean approve,
-    String reason) {
+      String reason) {
     ApiEnum action = ApiEnum.SET_GROUP_ADD_REQUEST;
 
     JSONObject params = new JSONObject();
@@ -474,9 +474,8 @@ public class Bot {
     params.put("approve", approve);
     params.put("reason", reason);
 
-    ApiRawData result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(ApiRawData.class);
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(ApiRawData.class);
   }
 
   /**
@@ -487,10 +486,9 @@ public class Bot {
   public ApiData<LoginInfoData> getLoginInfo() {
     ApiEnum action = ApiEnum.GET_LOGIN_INFO;
 
-    ApiData<LoginInfoData> result = apiHandler.sendApiMessage(botSession, action, null)
-      .toJavaObject(new TypeReference<ApiData<LoginInfoData>>() {
-      });
-    return result;
+    return getApiHandler(action).callApi(action, null)
+        .toJavaObject(new TypeReference<ApiData<LoginInfoData>>() {
+        });
   }
 
   /**
@@ -508,10 +506,9 @@ public class Bot {
     params.put("user_id", user_id);
     params.put("no_cache", no_cache);
 
-    ApiData<StrangerInfoData> result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(new TypeReference<ApiData<StrangerInfoData>>() {
-      });
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(new TypeReference<ApiData<StrangerInfoData>>() {
+        });
   }
 
   /**
@@ -521,10 +518,9 @@ public class Bot {
    */
   public ApiListData<FriendData> getFriendList() {
     ApiEnum action = ApiEnum.GET_FRIEND_LIST;
-    ApiListData<FriendData> result = apiHandler.sendApiMessage(botSession, action, null)
-      .toJavaObject(new TypeReference<ApiListData<FriendData>>() {
-      });
-    return result;
+    return getApiHandler(action).callApi(action, null)
+        .toJavaObject(new TypeReference<ApiListData<FriendData>>() {
+        });
   }
 
   /**
@@ -535,10 +531,9 @@ public class Bot {
   public ApiListData<GroupData> getGroupList() {
     ApiEnum action = ApiEnum.GET_GROUP_LIST;
 
-    ApiListData<GroupData> result = apiHandler.sendApiMessage(botSession, action, null)
-      .toJavaObject(new TypeReference<ApiListData<GroupData>>() {
-      });
-    return result;
+    return getApiHandler(action).callApi(action, null)
+        .toJavaObject(new TypeReference<ApiListData<GroupData>>() {
+        });
   }
 
   /**
@@ -553,10 +548,9 @@ public class Bot {
     JSONObject params = new JSONObject();
     params.put("group_id", group_id);
     params.put("no_cache", no_cache);
-    ApiData<GroupInfoData> result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(new TypeReference<ApiData<GroupInfoData>>() {
-      });
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(new TypeReference<ApiData<GroupInfoData>>() {
+        });
   }
 
   /**
@@ -568,7 +562,7 @@ public class Bot {
    * @return 结果
    */
   public ApiData<GroupMemberInfoData> getGroupMemberInfo(long group_id, long user_id,
-    boolean no_cache) {
+      boolean no_cache) {
     ApiEnum action = ApiEnum.GET_GROUP_MEMBER_INFO;
 
     JSONObject params = new JSONObject();
@@ -576,10 +570,9 @@ public class Bot {
     params.put("user_id", user_id);
     params.put("no_cache", no_cache);
 
-    ApiData<GroupMemberInfoData> result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(new TypeReference<ApiData<GroupMemberInfoData>>() {
-      });
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(new TypeReference<ApiData<GroupMemberInfoData>>() {
+        });
   }
 
   /**
@@ -596,11 +589,10 @@ public class Bot {
     JSONObject params = new JSONObject();
 
     params.put("group_id", group_id);
-    ApiListData<GroupMemberInfoData> result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(new TypeReference<ApiListData<GroupMemberInfoData>>() {
-      });
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(new TypeReference<ApiListData<GroupMemberInfoData>>() {
+        });
 
-    return result;
   }
 
 
@@ -616,10 +608,9 @@ public class Bot {
     JSONObject params = new JSONObject();
     params.put("domain", domain);
 
-    ApiData<CookiesData> result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(new TypeReference<ApiData<CookiesData>>() {
-      });
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(new TypeReference<ApiData<CookiesData>>() {
+        });
   }
 
   /**
@@ -630,10 +621,9 @@ public class Bot {
   public ApiData<CsrfTokenData> getCsrfToken() {
     ApiEnum action = ApiEnum.GET_CSRF_TOKEN;
 
-    ApiData<CsrfTokenData> result = apiHandler.sendApiMessage(botSession, action, null)
-      .toJavaObject(new TypeReference<ApiData<CsrfTokenData>>() {
-      });
-    return result;
+    return getApiHandler(action).callApi(action, null)
+        .toJavaObject(new TypeReference<ApiData<CsrfTokenData>>() {
+        });
   }
 
   /**
@@ -648,10 +638,9 @@ public class Bot {
     JSONObject params = new JSONObject();
     params.put("domain", domain);
 
-    ApiData<CredentialsData> result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(new TypeReference<ApiData<CredentialsData>>() {
-      });
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(new TypeReference<ApiData<CredentialsData>>() {
+        });
   }
 
   /**
@@ -670,10 +659,9 @@ public class Bot {
     params.put("out_format", out_format);
     params.put("full_path", full_path);
 
-    ApiData<FileData> result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(new TypeReference<ApiData<FileData>>() {
-      });
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(new TypeReference<ApiData<FileData>>() {
+        });
   }
 
   /**
@@ -688,10 +676,9 @@ public class Bot {
     JSONObject params = new JSONObject();
     params.put("file", file);
 
-    ApiData<FileData> result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(new TypeReference<ApiData<FileData>>() {
-      });
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(new TypeReference<ApiData<FileData>>() {
+        });
   }
 
   /**
@@ -702,10 +689,9 @@ public class Bot {
   public ApiData<BooleanData> canSendImage() {
     ApiEnum action = ApiEnum.CAN_SEND_IMAGE;
 
-    ApiData<BooleanData> result = apiHandler.sendApiMessage(botSession, action, null)
-      .toJavaObject(new TypeReference<ApiData<BooleanData>>() {
-      });
-    return result;
+    return getApiHandler(action).callApi(action, null)
+        .toJavaObject(new TypeReference<ApiData<BooleanData>>() {
+        });
   }
 
   /**
@@ -716,10 +702,9 @@ public class Bot {
   public ApiData<BooleanData> canSendRecord() {
     ApiEnum action = ApiEnum.CAN_SEND_RECORD;
 
-    ApiData<BooleanData> result = apiHandler.sendApiMessage(botSession, action, null)
-      .toJavaObject(new TypeReference<ApiData<BooleanData>>() {
-      });
-    return result;
+    return getApiHandler(action).callApi(action, null)
+        .toJavaObject(new TypeReference<ApiData<BooleanData>>() {
+        });
   }
 
   /**
@@ -730,10 +715,9 @@ public class Bot {
   public ApiData<BotStatus> getStatus() {
     ApiEnum action = ApiEnum.GET_STATUS;
 
-    ApiData<BotStatus> result = apiHandler.sendApiMessage(botSession, action, null)
-      .toJavaObject(new TypeReference<ApiData<BotStatus>>() {
-      });
-    return result;
+    return getApiHandler(action).callApi(action, null)
+        .toJavaObject(new TypeReference<ApiData<BotStatus>>() {
+        });
   }
 
   /**
@@ -744,10 +728,9 @@ public class Bot {
   public ApiData<VersionInfoData> getVersionInfo() {
     ApiEnum action = ApiEnum.GET_VERSION_INFO;
 
-    ApiData<VersionInfoData> result = apiHandler.sendApiMessage(botSession, action, null)
-      .toJavaObject(new TypeReference<ApiData<VersionInfoData>>() {
-      });
-    return result;
+    return getApiHandler(action).callApi(action, null)
+        .toJavaObject(new TypeReference<ApiData<VersionInfoData>>() {
+        });
   }
 
   /**
@@ -762,9 +745,8 @@ public class Bot {
     JSONObject params = new JSONObject();
     params.put("delay", delay);
 
-    ApiRawData result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(ApiRawData.class);
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(ApiRawData.class);
   }
 
   /**
@@ -779,9 +761,8 @@ public class Bot {
     JSONObject params = new JSONObject();
     params.put("data_dir", data_dir);
 
-    ApiRawData result = apiHandler.sendApiMessage(botSession, action, params)
-      .toJavaObject(ApiRawData.class);
-    return result;
+    return getApiHandler(action).callApi(action, params)
+        .toJavaObject(ApiRawData.class);
   }
 
   /**
@@ -792,8 +773,7 @@ public class Bot {
   public ApiRawData cleanPluginLog() {
     ApiEnum action = ApiEnum.CLEAN_PLUGIN_LOG;
 
-    ApiRawData result = apiHandler.sendApiMessage(botSession, action, null)
-      .toJavaObject(ApiRawData.class);
-    return result;
+    return getApiHandler(action).callApi(action, null)
+        .toJavaObject(ApiRawData.class);
   }
 }

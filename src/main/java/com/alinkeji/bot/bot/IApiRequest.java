@@ -9,7 +9,7 @@ public interface IApiRequest {
 
   String getApiUrl();
 
-  String getApiMethod();
+  ApiMethod getApiMethod();
 
   JSONObject getParams();
 }
