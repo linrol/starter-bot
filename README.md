@@ -7,7 +7,7 @@
 - 这是一个自定义spring-boot-starter，开箱即用
 
 ## 开发环境
-- IntelliJ IDEA Ultimate(学生认证免费)
+- IntelliJ IDEA
 - IntelliJ IDEA中的lombok插件，File->Settings->Plugins->搜索Lombok->Install->重启IDEA
 - JDK IDEA自动安装，不需要自己装
 - MAVEN IDEA自动安装，不需要自己装
@@ -30,7 +30,7 @@
       port: 8081 # 下面的cqhttp都是8081端口，可以自己改
 
     bot:
-      # 在这里配置具体API的通信方式，不配置默认为WsReverse
+      # 在这里配置具体API的通信方式，可选配置:WsReverse、Ws、Http 默认为WsReverse，
       api-method:
         send_group_msg:
           http
