@@ -80,7 +80,8 @@ public class Bot {
 
   private ApiHandler getApiHandler(ApiEnum apiEnum) {
     ApiHandler apiHandler = getApiHandler(apiEnum.getApiMethod());
-    log.debug("bot[{}] api url[{}] used handler[{}]", botId, apiEnum.getUrl(), apiHandler.getClass());
+    log.debug("bot[{}] api url[{}] used handler[{}]", botId, apiEnum.getUrl(),
+        apiHandler.getClass());
     return apiHandler;
   }
 
@@ -110,7 +111,8 @@ public class Bot {
     // 消息Id
     wechatMsg.setId(String.valueOf(System.currentTimeMillis()));
     // 发送消息
-    // botClient.send(JSONObject.toJSONString(wechatMsg));
+    ApiHandler apiHandler = getApiHandler(ApiEnum.SEND_MSG);
+    apiHandler.callApi(ApiEnum.SEND_MSG, JSONObject.parseObject(JSONObject.toJSONString(wechatMsg)));
     return true;
   }
 
