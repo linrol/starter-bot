@@ -26,24 +26,6 @@ public class HttpApiHandler extends ApiHandler {
     this.botServerUrls = botServerUrls;
   }
 
-  class ApiRequest implements IApiRequest {
-
-    @Override
-    public String getApiUrl() {
-      return null;
-    }
-
-    @Override
-    public ApiMethod getApiMethod() {
-      return null;
-    }
-
-    @Override
-    public JSONObject getParams() {
-      return null;
-    }
-  }
-
   @Override
   public JSONObject callApi(ApiEnum apiEnum, JSONObject params) {
     Stack<IApiRequest> requestStack = botServerUrls.stream().map(serverUrl -> {
