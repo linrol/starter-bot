@@ -78,13 +78,6 @@ public class Bot {
     return apiHandler;
   }
 
-  private ApiHandler getApiHandler(ApiEnum apiEnum) {
-    ApiHandler apiHandler = getApiHandler(apiEnum.getApiMethod());
-    log.debug("bot[{}] api url[{}] used handler[{}]", botId, apiEnum.getAction(),
-        apiHandler.getClass());
-    return apiHandler;
-  }
-
   /**
    * 调用自定义的API
    *
