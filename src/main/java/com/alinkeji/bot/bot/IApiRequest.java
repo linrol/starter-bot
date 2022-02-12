@@ -8,7 +8,7 @@ import java.util.function.Predicate;
  */
 public interface IApiRequest {
 
-  String getApiUrl();
+  String getApiAction();
 
   ApiMethod getApiMethod();
 

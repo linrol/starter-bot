@@ -80,40 +80,9 @@ public class Bot {
 
   private ApiHandler getApiHandler(ApiEnum apiEnum) {
     ApiHandler apiHandler = getApiHandler(apiEnum.getApiMethod());
-    log.debug("bot[{}] api url[{}] used handler[{}]", botId, apiEnum.getUrl(),
+    log.debug("bot[{}] api url[{}] used handler[{}]", botId, apiEnum.getAction(),
         apiHandler.getClass());
     return apiHandler;
-  }
-
-  /**
-   * call hook api use by websocket client
-   *
-   * @param wechatMsg 微信参数
-   * @return true or false
-   */
-  public boolean callWxApi(WechatMsg wechatMsg) {
-    String NULL_MSG = "null";
-    if (!StringUtils.hasText(wechatMsg.getExt())) {
-      wechatMsg.setExt(NULL_MSG);
-    }
-    if (!StringUtils.hasText(wechatMsg.getNickname())) {
-      wechatMsg.setNickname(NULL_MSG);
-    }
-    if (!StringUtils.hasText(wechatMsg.getRoomid())) {
-      wechatMsg.setRoomid(NULL_MSG);
-    }
-    if (!StringUtils.hasText(wechatMsg.getContent())) {
-      wechatMsg.setContent(NULL_MSG);
-    }
-    if (!StringUtils.hasText(wechatMsg.getWxid())) {
-      wechatMsg.setWxid(NULL_MSG);
-    }
-    // 消息Id
-    wechatMsg.setId(String.valueOf(System.currentTimeMillis()));
-    // 发送消息
-    ApiHandler apiHandler = getApiHandler(ApiEnum.SEND_MSG);
-    apiHandler.callApi(ApiEnum.SEND_MSG, JSONObject.parseObject(JSONObject.toJSONString(wechatMsg)));
-    return true;
   }
 
   /**
@@ -122,10 +91,9 @@ public class Bot {
    * @param apiRequest 包含String url, JsonObject params
    * @return 结果
    */
-  public ApiData<Object> callCustomApi(IApiRequest apiRequest) {
+  public JSONObject callCustomApi(IApiRequest apiRequest) {
     ApiHandler apiHandler = getApiHandler(apiRequest.getApiMethod());
-    return apiHandler.callApi(apiRequest).toJavaObject(new TypeReference<ApiData<Object>>() {
-    });
+    return apiHandler.callApi(apiRequest);
   }
 
   /**
@@ -144,7 +112,7 @@ public class Bot {
     params.put("message", message);
     params.put("auto_escape", auto_escape);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(new TypeReference<ApiData<MessageData>>() {
         });
   }
@@ -166,7 +134,7 @@ public class Bot {
     params.put("message", message);
     params.put("auto_escape", auto_escape);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(new TypeReference<ApiData<MessageData>>() {
         });
   }
@@ -187,7 +155,7 @@ public class Bot {
     params.put("message", message);
     params.put("auto_escape", auto_escape);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(new TypeReference<ApiData<MessageData>>() {
         });
   }
@@ -204,7 +172,7 @@ public class Bot {
     JSONObject params = new JSONObject();
     params.put("message_id", message_id);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(ApiRawData.class);
   }
 
@@ -222,7 +190,7 @@ public class Bot {
     params.put("user_id", user_id);
     params.put("times", times);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(ApiRawData.class);
   }
 
@@ -242,7 +210,7 @@ public class Bot {
     params.put("user_id", user_id);
     params.put("reject_add_request", reject_add_request);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(ApiRawData.class);
   }
 
@@ -262,7 +230,7 @@ public class Bot {
     params.put("user_id", user_id);
     params.put("duration", duration);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(ApiRawData.class);
   }
 
@@ -283,7 +251,7 @@ public class Bot {
     params.put("anonymous", botGroupAnonymous);
     params.put("duration", duration);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(ApiRawData.class);
   }
 
@@ -303,7 +271,7 @@ public class Bot {
     params.put("flag", flag);
     params.put("duration", duration);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(ApiRawData.class);
   }
 
@@ -320,7 +288,7 @@ public class Bot {
     params.put("group_id", group_id);
     params.put("enable", enable);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(ApiRawData.class);
   }
 
@@ -340,7 +308,7 @@ public class Bot {
     params.put("user_id", user_id);
     params.put("enable", enable);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(ApiRawData.class);
   }
 
@@ -358,7 +326,7 @@ public class Bot {
     params.put("group_id", group_id);
     params.put("enable", enable);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(ApiRawData.class);
   }
 
@@ -378,7 +346,7 @@ public class Bot {
     params.put("user_id", user_id);
     params.put("card", card);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(ApiRawData.class);
   }
 
@@ -394,7 +362,7 @@ public class Bot {
     params.put("group_id", group_id);
     params.put("is_dismiss", is_dismiss);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(ApiRawData.class);
   }
 
@@ -417,7 +385,7 @@ public class Bot {
     params.put("special_title", special_title);
     params.put("duration", duration);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(ApiRawData.class);
   }
 
@@ -433,7 +401,7 @@ public class Bot {
     JSONObject params = new JSONObject();
     params.put("discuss_id", discuss_id);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(ApiRawData.class);
   }
 
@@ -453,7 +421,7 @@ public class Bot {
     params.put("approve", approve);
     params.put("remark", remark);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(ApiRawData.class);
   }
 
@@ -476,7 +444,7 @@ public class Bot {
     params.put("approve", approve);
     params.put("reason", reason);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(ApiRawData.class);
   }
 
@@ -488,7 +456,7 @@ public class Bot {
   public ApiData<LoginInfoData> getLoginInfo() {
     ApiEnum action = ApiEnum.GET_LOGIN_INFO;
 
-    return getApiHandler(action).callApi(action, null)
+    return callCustomApi(buildApiRequest(action, null))
         .toJavaObject(new TypeReference<ApiData<LoginInfoData>>() {
         });
   }
@@ -508,7 +476,7 @@ public class Bot {
     params.put("user_id", user_id);
     params.put("no_cache", no_cache);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(new TypeReference<ApiData<StrangerInfoData>>() {
         });
   }
@@ -520,7 +488,7 @@ public class Bot {
    */
   public ApiListData<FriendData> getFriendList() {
     ApiEnum action = ApiEnum.GET_FRIEND_LIST;
-    return getApiHandler(action).callApi(action, null)
+    return callCustomApi(buildApiRequest(action, null))
         .toJavaObject(new TypeReference<ApiListData<FriendData>>() {
         });
   }
@@ -533,7 +501,7 @@ public class Bot {
   public ApiListData<GroupData> getGroupList() {
     ApiEnum action = ApiEnum.GET_GROUP_LIST;
 
-    return getApiHandler(action).callApi(action, null)
+    return callCustomApi(buildApiRequest(action, null))
         .toJavaObject(new TypeReference<ApiListData<GroupData>>() {
         });
   }
@@ -550,7 +518,7 @@ public class Bot {
     JSONObject params = new JSONObject();
     params.put("group_id", group_id);
     params.put("no_cache", no_cache);
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(new TypeReference<ApiData<GroupInfoData>>() {
         });
   }
@@ -572,7 +540,7 @@ public class Bot {
     params.put("user_id", user_id);
     params.put("no_cache", no_cache);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(new TypeReference<ApiData<GroupMemberInfoData>>() {
         });
   }
@@ -591,7 +559,7 @@ public class Bot {
     JSONObject params = new JSONObject();
 
     params.put("group_id", group_id);
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(new TypeReference<ApiListData<GroupMemberInfoData>>() {
         });
 
@@ -610,7 +578,7 @@ public class Bot {
     JSONObject params = new JSONObject();
     params.put("domain", domain);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(new TypeReference<ApiData<CookiesData>>() {
         });
   }
@@ -623,7 +591,7 @@ public class Bot {
   public ApiData<CsrfTokenData> getCsrfToken() {
     ApiEnum action = ApiEnum.GET_CSRF_TOKEN;
 
-    return getApiHandler(action).callApi(action, null)
+    return callCustomApi(buildApiRequest(action, null))
         .toJavaObject(new TypeReference<ApiData<CsrfTokenData>>() {
         });
   }
@@ -640,7 +608,7 @@ public class Bot {
     JSONObject params = new JSONObject();
     params.put("domain", domain);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(new TypeReference<ApiData<CredentialsData>>() {
         });
   }
@@ -661,7 +629,7 @@ public class Bot {
     params.put("out_format", out_format);
     params.put("full_path", full_path);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(new TypeReference<ApiData<FileData>>() {
         });
   }
@@ -678,7 +646,7 @@ public class Bot {
     JSONObject params = new JSONObject();
     params.put("file", file);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(new TypeReference<ApiData<FileData>>() {
         });
   }
@@ -691,7 +659,7 @@ public class Bot {
   public ApiData<BooleanData> canSendImage() {
     ApiEnum action = ApiEnum.CAN_SEND_IMAGE;
 
-    return getApiHandler(action).callApi(action, null)
+    return callCustomApi(buildApiRequest(action, null))
         .toJavaObject(new TypeReference<ApiData<BooleanData>>() {
         });
   }
@@ -704,7 +672,7 @@ public class Bot {
   public ApiData<BooleanData> canSendRecord() {
     ApiEnum action = ApiEnum.CAN_SEND_RECORD;
 
-    return getApiHandler(action).callApi(action, null)
+    return callCustomApi(buildApiRequest(action, null))
         .toJavaObject(new TypeReference<ApiData<BooleanData>>() {
         });
   }
@@ -717,7 +685,7 @@ public class Bot {
   public ApiData<BotStatus> getStatus() {
     ApiEnum action = ApiEnum.GET_STATUS;
 
-    return getApiHandler(action).callApi(action, null)
+    return callCustomApi(buildApiRequest(action, null))
         .toJavaObject(new TypeReference<ApiData<BotStatus>>() {
         });
   }
@@ -730,7 +698,7 @@ public class Bot {
   public ApiData<VersionInfoData> getVersionInfo() {
     ApiEnum action = ApiEnum.GET_VERSION_INFO;
 
-    return getApiHandler(action).callApi(action, null)
+    return callCustomApi(buildApiRequest(action, null))
         .toJavaObject(new TypeReference<ApiData<VersionInfoData>>() {
         });
   }
@@ -747,7 +715,7 @@ public class Bot {
     JSONObject params = new JSONObject();
     params.put("delay", delay);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(ApiRawData.class);
   }
 
@@ -763,7 +731,7 @@ public class Bot {
     JSONObject params = new JSONObject();
     params.put("data_dir", data_dir);
 
-    return getApiHandler(action).callApi(action, params)
+    return callCustomApi(buildApiRequest(action, params))
         .toJavaObject(ApiRawData.class);
   }
 
@@ -775,7 +743,26 @@ public class Bot {
   public ApiRawData cleanPluginLog() {
     ApiEnum action = ApiEnum.CLEAN_PLUGIN_LOG;
 
-    return getApiHandler(action).callApi(action, null)
+    return callCustomApi(buildApiRequest(action, null))
         .toJavaObject(ApiRawData.class);
+  }
+
+  public IApiRequest buildApiRequest(ApiEnum apiEnum, JSONObject params){
+    return new IApiRequest() {
+      @Override
+      public String getApiAction() {
+        return apiEnum.getAction();
+      }
+
+      @Override
+      public ApiMethod getApiMethod() {
+        return apiEnum.getApiMethod();
+      }
+
+      @Override
+      public JSONObject getParams() {
+        return params;
+      }
+    };
   }
 }

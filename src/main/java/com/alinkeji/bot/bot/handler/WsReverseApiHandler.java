@@ -1,7 +1,6 @@
 package com.alinkeji.bot.bot.handler;
 
 import com.alibaba.fastjson.JSONObject;
-import com.alinkeji.bot.bot.ApiEnum;
 import com.alinkeji.bot.bot.ApiHandler;
 import com.alinkeji.bot.bot.ApiSender;
 import com.alinkeji.bot.bot.IApiRequest;
@@ -42,25 +41,6 @@ public class WsReverseApiHandler extends ApiHandler {
     apiCallbackMap.remove(echo);
   }
 
-
-  /**
-   * 构造API需要的json，使用预定义的Enum
-   *
-   * @param action 需要调用的API
-   * @param params 参数
-   * @return 结果
-   */
-  private JSONObject constructApiJSON(ApiEnum action, JSONObject params) {
-    JSONObject apiJSON = new JSONObject();
-    apiJSON.put("action", action.getUrl());
-    if (params != null) {
-      apiJSON.put("params", params);
-    }
-    apiJSON.put("echo", apiEcho++);
-
-    return apiJSON;
-  }
-
   /**
    * 构造API需要的json，自定义request
    *
@@ -69,7 +49,7 @@ public class WsReverseApiHandler extends ApiHandler {
    */
   private JSONObject constructApiJSON(IApiRequest apiRequest) {
     JSONObject apiJSON = new JSONObject();
-    apiJSON.put("action", apiRequest.getApiUrl());
+    apiJSON.put("action", apiRequest.getApiAction());
     if (apiRequest.getParams() != null) {
       apiJSON.put("params", apiRequest.getParams());
     }
@@ -80,12 +60,6 @@ public class WsReverseApiHandler extends ApiHandler {
   @Override
   public JSONObject callApi(IApiRequest apiRequest) {
     JSONObject apiJSON = constructApiJSON(apiRequest);
-    return callApi(apiJSON);
-  }
-
-  @Override
-  public JSONObject callApi(ApiEnum apiEnum, JSONObject params) {
-    JSONObject apiJSON = constructApiJSON(apiEnum, params);
     return callApi(apiJSON);
   }
 

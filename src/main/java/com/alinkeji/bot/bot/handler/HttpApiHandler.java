@@ -1,15 +1,14 @@
 package com.alinkeji.bot.bot.handler;
 
 import com.alibaba.fastjson.JSONObject;
-import com.alinkeji.bot.bot.ApiEnum;
 import com.alinkeji.bot.bot.ApiHandler;
-import com.alinkeji.bot.bot.ApiMethod;
 import com.alinkeji.bot.bot.IApiRequest;
 import com.alinkeji.bot.utils.OkHttpClientUtil;
 import java.util.List;
 import java.util.Stack;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * API处理类
@@ -27,38 +26,14 @@ public class HttpApiHandler extends ApiHandler {
   }
 
   @Override
-  public JSONObject callApi(ApiEnum apiEnum, JSONObject params) {
-    Stack<IApiRequest> requestStack = botServerUrls.stream().map(serverUrl -> {
-      return new IApiRequest() {
-        @Override
-        public String getApiUrl() {
-          return String.format(serverUrl, botId, apiEnum.getUrl());
-        }
-
-        @Override
-        public ApiMethod getApiMethod() {
-          return apiEnum.getApiMethod();
-        }
-
-        @Override
-        public JSONObject getParams() {
-          return params;
-        }
-      };
-    }).collect(Collectors.toCollection(Stack::new));
-    return callHttpApi(requestStack);
+  public JSONObject callApi(IApiRequest request) {
+    Stack<String> serverUrlStack = botServerUrls.stream().collect(Collectors.toCollection(Stack::new));
+    return callHttpApi(serverUrlStack, request);
   }
 
-  @Override
-  public JSONObject callApi(IApiRequest apiRequest) {
-    Stack<IApiRequest> requestStack = new Stack<>();
-    requestStack.push(apiRequest);
-    return callHttpApi(requestStack);
-  }
-
-  private JSONObject callHttpApi(Stack<IApiRequest> requestStack) {
-    IApiRequest request = requestStack.pop();
-    String apiUrl = request.getApiUrl();
+  private JSONObject callHttpApi(Stack<String> serverUrlStack, IApiRequest request) {
+    String serverUrl = serverUrlStack.pop();
+    String apiUrl = serverUrl + StringUtils.defaultIfBlank(request.getApiAction(), "");
     OkHttpClientUtil<JSONObject> callClient = OkHttpClientUtil.build(JSONObject.class);
     JSONObject apiResult;
     try {
@@ -72,10 +47,10 @@ public class HttpApiHandler extends ApiHandler {
     if (request.getApiResultPredicate().test(apiResult)) {
       return apiResult;
     }
-    if (requestStack.isEmpty()) {
+    if (serverUrlStack.isEmpty()) {
       return apiResult;
     }
     log.error("botId[{}] call api [{}] failed [{}]", botId, apiUrl, apiResult.toJSONString());
-    return callHttpApi(requestStack);
+    return callHttpApi(serverUrlStack, request);
   }
 }

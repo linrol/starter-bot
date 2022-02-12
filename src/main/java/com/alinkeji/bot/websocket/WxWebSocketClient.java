@@ -45,12 +45,12 @@ public class WxWebSocketClient extends WebSocketClient {
   @Override
   public void onClose(int i, String s, boolean b) {
     logger.error("微信机器人[{}]已断开连接hook server[{}]...", botName, serverUrl);
-    botFactory.destroy(botName, ApiMethod.Ws);
+    // botFactory.destroy(botName, ApiMethod.Ws);
   }
 
   @Override
   public void onError(Exception e) {
     logger.error("微信机器人[{}]连接hook server[{}]异常...", botName, serverUrl, e);
-    botFactory.destroy(botName, ApiMethod.Ws);
+    // botFactory.destroy(botName, ApiMethod.Ws);
   }
 }

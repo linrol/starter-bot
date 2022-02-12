@@ -48,15 +48,15 @@ public enum ApiEnum {
   CLEAN_DATA_DIR("clean_data_dir", ApiMethod.WsReverse, "清理数据目录"),
   CLEAN_PLUGIN_LOG("clean_plugin_log", ApiMethod.WsReverse, "清理插件日志");
 
-  private String url;
+  private String action;
   private ApiMethod apiMethod;
   private String desc;
 
   public ApiMethod getApiMethod() {
     ApiMethod apiMethod = this.apiMethod;
     Map<String, String> apiMethodMap = SpringContextUtils.getBean(Properties.class).getApiMethod();
-    if (apiMethodMap.containsKey(this.getUrl())) {
-      return EnumUtils.getEnumIgnoreCase(ApiMethod.class, apiMethodMap.get(this.getUrl()));
+    if (apiMethodMap.containsKey(this.getAction())) {
+      return EnumUtils.getEnumIgnoreCase(ApiMethod.class, apiMethodMap.get(this.getAction()));
     }
     return apiMethod;
   }

@@ -3,7 +3,6 @@ package com.alinkeji.bot.bot;
 import com.alinkeji.bot.BotGlobal;
 import com.alinkeji.bot.boot.Properties;
 import com.alinkeji.bot.bot.handler.HttpApiHandler;
-import com.alinkeji.bot.bot.handler.WsApiHandler;
 import com.alinkeji.bot.bot.handler.WsReverseApiHandler;
 import java.util.List;
 import org.java_websocket.client.WebSocketClient;
@@ -40,8 +39,9 @@ public class BotFactory {
    * @return
    */
   public Bot injectWs(String botId, WebSocketClient webSocketClient) {
-    ApiHandler apiHandler = new WsApiHandler(webSocketClient);
-    return getBot(botId).addApiHandler(ApiMethod.Ws, apiHandler);
+    //ApiHandler apiHandler = new WsApiHandler(webSocketClient);
+    //return getBot(botId).addApiHandler(ApiMethod.Ws, apiHandler);
+    throw new UnsupportedOperationException("Unsupported ws");
   }
 
   /**

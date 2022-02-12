@@ -7,8 +7,6 @@ import com.alibaba.fastjson.JSONObject;
  */
 public abstract class ApiHandler {
 
-  public abstract JSONObject callApi(ApiEnum apiEnum, JSONObject params);
-
   public JSONObject callApi(IApiRequest apiRequest) {
     throw new UnsupportedOperationException("unsupported call api");
   }
