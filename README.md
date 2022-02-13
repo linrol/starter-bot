@@ -2,7 +2,9 @@
 [![maven](https://img.shields.io/maven-central/v/net.lz1998/spring-cq)](https://search.maven.org/artifact/com.alinkeji/starter-bot)
 [![QQ群](https://img.shields.io/static/v1?label=QQ%E7%BE%A4&message=606160828&color=blue)](https://jq.qq.com/?_wv=1027&k=5BKAROL)
 
-- 基于 go-cqhttp、oicq、lovelycat、wechat-bot的QQ和WeChat机器人框架（支持正向，反向websocket以及http 多种通信方式）
+- 基于 go-cqhttp、oicq、lovelycat、wechat-bot的QQ和WeChat机器人框架
+
+- 支持HTTP，反向websocket 2种通信方式
 
 - 这是一个自定义spring-boot-starter，开箱即用
 
