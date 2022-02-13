@@ -12,19 +12,11 @@ import org.mvel2.PropertyAccessException;
 public class MapEx<K, V> extends HashMap<K, V> {
 
   public Boolean getBoolean(String key) {
-    try {
-      return MVEL.evalToBoolean(key, this);
-    } catch (Exception e) {
-      return null;
-    }
+    return get(key, Boolean.class);
   }
 
   public Boolean getBooleanOrDefault(String key, boolean defaultValue) {
-    Boolean value = getBoolean(key);
-    if (value == null) {
-      return defaultValue;
-    }
-    return value;
+    return get(key, Boolean.class, defaultValue);
   }
 
   public Integer getInteger(String key) {
@@ -32,23 +24,23 @@ public class MapEx<K, V> extends HashMap<K, V> {
   }
 
   public String getString(String key) {
-    try {
-      return MVEL.evalToString(key, this);
-    } catch (Exception e) {
-      return null;
-    }
+    return get(key, String.class);
   }
 
   public Object getObject(String key) {
-    try {
-      return MVEL.eval(key, this);
-    } catch (Exception e) {
-      return null;
-    }
+    return get(key, Object.class);
   }
 
   public <T> T get(String key, Class<T> clazz) {
-    return MVEL.eval(key, this, clazz);
+    return get(key, clazz, null);
+  }
+
+  public <T> T get(String key, Class<T> clazz, T defaultValue) {
+    try {
+      return MVEL.eval(key, this, clazz);
+    } catch (Exception e) {
+      return defaultValue;
+    }
   }
 
   public <T> List<T> getList(String key, Type type) {
