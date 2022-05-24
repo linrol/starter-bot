@@ -13,11 +13,11 @@ public class BotGlobal {
 
   public static Map<String, Bot> bots = new ConcurrentHashMap<>();
 
-  public Bot get(String botId) {
+  public static Bot get(String botId) {
     return bots.get(botId);
   }
 
-  public Bot get(String botId, Function<String, String> tryLogin) {
+  public static Bot get(String botId, Function<String, String> tryLogin) {
     Bot bot = get(botId);
     if (bot != null) {
       return bot;
