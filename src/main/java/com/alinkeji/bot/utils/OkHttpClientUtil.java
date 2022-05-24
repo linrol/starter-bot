@@ -79,6 +79,7 @@ public class OkHttpClientUtil<R> extends OkHttpClient {
       .post(requestBody)
       .build();
 
+    log.debug("OkHttpClientUtil#post url[{}] body[{}]", url, json);
     R r = request(client, request);
     log.debug("OkHttpClientUtil#post url[{}] body[{}] result[{}]", url, json, r.toString());
     return r;
