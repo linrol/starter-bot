@@ -14,7 +14,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.internal.Util;
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class OkHttpClientUtil<R> extends OkHttpClient {
@@ -105,6 +105,7 @@ public class OkHttpClientUtil<R> extends OkHttpClient {
 
   public R request(OkHttpClient client, Request request) {
     Response response = null;
+    String requestInfo = String.format("OkHttpClientUtil#request url[%s] body[%s] ", request.url().url(), request.body());
     try {
       response = client.newCall(request).execute();
       if (response.isSuccessful()) {
@@ -113,8 +114,8 @@ public class OkHttpClientUtil<R> extends OkHttpClient {
       }
     } catch (Exception e) {
       e.printStackTrace();
-      throw new RuntimeException("OkHttpClientUtil#request exception:" + e.getMessage());
+      throw new RuntimeException(requestInfo + "exception:" + e.getMessage());
     }
-    throw new RuntimeException("OkHttpClientUtil#request status code:" + response.code());
+    throw new RuntimeException(requestInfo + "response code:" + response.code());
   }
 }
