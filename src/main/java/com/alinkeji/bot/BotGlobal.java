@@ -3,11 +3,13 @@ package com.alinkeji.bot;
 import com.alinkeji.bot.bot.Bot;
 import com.alinkeji.bot.bot.BotFactory;
 import com.alinkeji.bot.utils.SpringContextUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import org.apache.commons.lang3.StringUtils;
+import java.util.function.Supplier;
 
 public class BotGlobal {
 
@@ -28,5 +30,13 @@ public class BotGlobal {
     }
     SpringContextUtils.getBean(BotFactory.class).injectHttp(botId, Collections.singletonList(serverUrl));
     return get(botId);
+  }
+
+  public static Bot get(String botId, Supplier<Bot> supplier) {
+    Bot bot = get(botId);
+    if (bot != null) {
+      return bot;
+    }
+    return supplier.get();
   }
 }
