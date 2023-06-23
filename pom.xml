@@ -12,32 +12,34 @@
 	<groupId>com.alinkeji</groupId>
 	<artifactId>starter-bot</artifactId>
 	<version>1.2.12</version>
-	<name>starter-bot</name>
-	<description>starter-bot for WeChat,QQ and more</description>
-	<url>http://alinkeji.com</url>
 
-	<developers>
-		<developer>
-			<name>linrol</name>
-			<email>1071893649@qq.com</email>
-			<organization>http://alinkeji.com</organization>
-			<url>https://linrol.github.io</url>
-		</developer>
-	</developers>
+	<name>starter-bot</name>
+	<url>https://linrol.cn</url>
+	<description>starter-bot for WeChat,QQ and more</description>
 
 	<licenses>
 		<license>
-			<name>GNU General Public License v3.0</name>
-			<url>http://www.gnu.org/licenses/gpl-3.0.html</url>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
 		</license>
 	</licenses>
 
 	<scm>
 		<tag>master</tag>
+		<url>https://github.com/linrol/starter-bot</url>
 		<connection>scm:git:git@github.com:linrol/starter-bot.git</connection>
 		<developerConnection>https://linrol.github.io/</developerConnection>
-		<url>https://github.com/linrol/starter-bot</url>
 	</scm>
+
+	<developers>
+		<developer>
+			<name>linrol</name>
+			<email>1071893649@qq.com</email>
+			<organization>https://linrol.cn</organization>
+			<url>https://linrol.github.io</url>
+		</developer>
+	</developers>
 
 	<properties>
 		<java.version>1.8</java.version>
@@ -145,7 +147,19 @@
 			<id>release</id>
 			<build>
 				<plugins>
-					<!-- Source -->
+					<plugin>
+						<groupId>org.sonatype.plugins</groupId>
+						<artifactId>nexus-staging-maven-plugin</artifactId>
+						<version>1.6.8</version>
+						<extensions>true</extensions>
+						<configuration>
+							<!-- 这里的id必须要和全局配置中的release id 一致 -->
+							<serverId>oss</serverId>
+							<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+							<!-- 如果希望发布后自动执行close和release操作，此处可以调整为true -->
+							<autoReleaseAfterClose>true</autoReleaseAfterClose>
+						</configuration>
+					</plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-source-plugin</artifactId>
@@ -159,7 +173,6 @@
 							</execution>
 						</executions>
 					</plugin>
-					<!-- Javadoc -->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-javadoc-plugin</artifactId>
@@ -173,11 +186,10 @@
 							</execution>
 						</executions>
 					</plugin>
-					<!-- GPG -->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.5</version>
+						<version>1.6</version>
 						<executions>
 							<execution>
 								<phase>verify</phase>
@@ -189,20 +201,25 @@
 					</plugin>
 				</plugins>
 			</build>
-			<distributionManagement>
-				<snapshotRepository>
-					<id>sonatype-snapshots</id>
-					<url>
-						https://oss.sonatype.org/content/repositories/snapshots/
-					</url>
-				</snapshotRepository>
-				<repository>
-					<id>sonatype-staging</id>
-					<url>
-						https://oss.sonatype.org/service/local/staging/deploy/maven2/
-					</url>
-				</repository>
-			</distributionManagement>
 		</profile>
 	</profiles>
+
+	<!-- 发布管理信息 -->
+	<distributionManagement>
+		<repository>
+			<!-- 这里的id必须要和全局配置中的release id 一致 -->
+			<id>sonatype_releases</id>
+			<name>Nexus Release Repository</name>
+			<!-- 这里就是在创建issue成功后，对方回复的release发布地址-->
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+		</repository>
+		<snapshotRepository>
+			<!-- 这里的id必须要和全局配置中的snapshot id 一致 -->
+			<id>sonatype_snapshots</id>
+			<name>Nexus Snapshot Repository</name>
+			<!-- 这里就是在创建issue成功后，对方回复的snapshot发布地址-->
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+
 </project>

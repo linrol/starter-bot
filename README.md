@@ -124,3 +124,8 @@
        }
    }
     ```
+
+## 发布Jar包到maven中央仓库
+```shell script
+mvn clean deploy -P sonatype-oss-release -Darguments="gpg.passphrase=password" -s /Users/linrol/work/ide/maven/apache-maven-3.6.0/conf/settings_linrol.xml
+```
