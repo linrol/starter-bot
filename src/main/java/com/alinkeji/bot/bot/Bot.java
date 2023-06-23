@@ -68,7 +68,7 @@ public class Bot {
     return this;
   }
 
-  private ApiHandler getApiHandler(ApiMethod apiMethod) {
+  public ApiHandler getApiHandler(ApiMethod apiMethod) {
     ApiHandler apiHandler = apiHandlerMap.get(apiMethod);
     if (Objects.isNull(apiHandler)) {
       String error = "bot[{}] used apiMethod[{}] not found apiHandler, try find any handler";

@@ -4,7 +4,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.alinkeji.bot.bot.ApiHandler;
 import com.alinkeji.bot.bot.IApiRequest;
 import com.alinkeji.bot.utils.OkHttpClientUtil;
-import java.util.List;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -18,11 +20,22 @@ public class HttpApiHandler extends ApiHandler {
 
   private String botId;
 
-  private List<String> botServerUrls;
+  private Set<String> botServerUrls;
 
-  public HttpApiHandler(String botId, List<String> botServerUrls) {
+  public HttpApiHandler(String botId) {
     this.botId = botId;
-    this.botServerUrls = botServerUrls;
+    this.botServerUrls = new HashSet<>();
+  }
+
+  public HttpApiHandler(String botId, Set<String> serverUrls) {
+    this.botId = botId;
+    this.botServerUrls = serverUrls;
+  }
+
+  @Override
+  public ApiHandler addServerUrls(String... serverUrl) {
+    botServerUrls.addAll(Arrays.asList(serverUrl));
+    return this;
   }
 
   @Override

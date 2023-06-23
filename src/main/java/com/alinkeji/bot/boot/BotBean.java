@@ -79,7 +79,7 @@ public class BotBean {
     return properties.getHttpServer().entrySet().stream().map(m -> {
       String botId = m.getKey();
       String httpServer = m.getValue();
-      return botFactory.injectHttp(botId, Arrays.asList(httpServer.split(",")));
+      return botFactory.injectHttp(botId, httpServer.split(","));
     }).collect(Collectors.toList());
   }
 

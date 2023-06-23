@@ -4,7 +4,6 @@ import com.alinkeji.bot.BotGlobal;
 import com.alinkeji.bot.boot.Properties;
 import com.alinkeji.bot.bot.handler.HttpApiHandler;
 import com.alinkeji.bot.bot.handler.WsReverseApiHandler;
-import java.util.List;
 import org.java_websocket.client.WebSocketClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -60,12 +59,13 @@ public class BotFactory {
    * 创建一个基于Http连接的Bot对象 把Ws Reverse的apiHandler放入对象
    *
    * @param botId
-   * @param botServerUrls
+   * @param serverUrls
    * @return
    */
-  public Bot injectHttp(String botId, List<String> botServerUrls) {
-    ApiHandler apiHandler = new HttpApiHandler(botId, botServerUrls);
-    return getBot(botId).addApiHandler(ApiMethod.Http, apiHandler);
+  public Bot injectHttp(String botId, String... serverUrls) {
+    Bot bot = getBot(botId);
+    ApiHandler apiHandler = bot.getApiHandlerMap().getOrDefault(ApiMethod.Http, new HttpApiHandler(botId)).addServerUrls(serverUrls);
+    return bot.addApiHandler(ApiMethod.Http, apiHandler);
   }
 
 }

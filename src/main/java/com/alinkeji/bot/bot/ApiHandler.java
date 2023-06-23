@@ -14,4 +14,8 @@ public abstract class ApiHandler {
   public void onReceiveApiMessage(JSONObject message) {
     throw new UnsupportedOperationException("unsupported receive api");
   }
+
+  public ApiHandler addServerUrls(String... serverUrl) {
+    throw new UnsupportedOperationException("unsupported addServerUrls");
+  }
 }

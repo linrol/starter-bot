@@ -3,9 +3,9 @@ package com.alinkeji.bot;
 import com.alinkeji.bot.bot.Bot;
 import com.alinkeji.bot.bot.BotFactory;
 import com.alinkeji.bot.utils.SpringContextUtils;
+import java.util.function.Consumer;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -19,16 +19,22 @@ public class BotGlobal {
     return bots.get(botId);
   }
 
-  public static Bot get(String botId, Function<String, String> tryLogin) {
+  public static Bot add(String botId, Function<String, String> login) {
+    String serverUrl = login.apply(botId);
+    if (StringUtils.isBlank(serverUrl)) {
+      return null;
+    }
+    return get(botId, factory -> {
+      factory.injectHttp(botId, serverUrl);
+    });
+  }
+
+  public static Bot get(String botId, Consumer<BotFactory> botFactory) {
     Bot bot = get(botId);
     if (bot != null) {
       return bot;
     }
-    String serverUrl = tryLogin.apply(botId);
-    if (StringUtils.isBlank(serverUrl)) {
-      return null;
-    }
-    SpringContextUtils.getBean(BotFactory.class).injectHttp(botId, Collections.singletonList(serverUrl));
+    botFactory.accept(SpringContextUtils.getBean(BotFactory.class));
     return get(botId);
   }
 
