@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>com.alinkeji</groupId>
 	<artifactId>starter-bot</artifactId>
-	<version>1.2.12</version>
+	<version>1.2.13</version>
 
 	<name>starter-bot</name>
 	<url>https://linrol.cn</url>

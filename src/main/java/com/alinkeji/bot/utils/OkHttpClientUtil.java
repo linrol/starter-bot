@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import java.lang.reflect.Type;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,9 @@ public class OkHttpClientUtil<R> extends OkHttpClient {
   R r;
 
   Type type = new TypeReference<MapEx<String, Object>>() {
+  }.getType();
+
+  Type types = new TypeReference<List<MapEx<String, Object>>>() {
   }.getType();
 
   private static final MediaType JSON_MEDIA_TYPE = MediaType
@@ -110,7 +114,8 @@ public class OkHttpClientUtil<R> extends OkHttpClient {
       response = client.newCall(request).execute();
       if (response.isSuccessful()) {
         assert response.body() != null;
-        return JSON.parseObject(response.body().string(), type);
+        String body = response.body().string();
+        return JSON.parseObject(body, body.startsWith("{") ? type: types);
       }
     } catch (Exception e) {
       e.printStackTrace();
